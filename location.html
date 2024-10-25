@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Location Sender</title>
+  </head>
+  <body>
+    <h1>Real-Time Location Sender</h1>
+    <button id="start">Start Sending Location</button>
+    <button id="stop" disabled>Stop Sending Location</button>
+
+    <script>
+      let watchId;
+
+      // Function to send location to the API
+      function sendLocation(longitude, latitude) {
+        const apiUrl = "http://127.0.0.1:8000/location/"; // Your API endpoint
+        const data = {
+          longitude: longitude,
+          latitude: latitude,
+        };
+
+        fetch(apiUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        })
+          .then((response) => {
+            if (response.ok) {
+              console.log("Location sent successfully:", data);
+            } else {
+              console.error("Error sending location:", response.statusText);
+            }
+          })
+          .catch((error) => console.error("Network error:", error));
+      }
+
+      // Function to handle position updates
+      function handlePosition(position) {
+        const { longitude, latitude } = position.coords;
+        sendLocation(longitude, latitude);
+      }
+
+      // Function to start watching the location
+      function startSendingLocation() {
+        if (navigator.geolocation) {
+          watchId = navigator.geolocation.watchPosition(
+            handlePosition,
+            (error) => {
+              console.error("Error getting location:", error);
+            }
+          );
+          document.getElementById("start").disabled = true;
+          document.getElementById("stop").disabled = false;
+        } else {
+          console.error("Geolocation is not supported by this browser.");
+        }
+      }
+
+      // Function to stop watching the location
+      function stopSendingLocation() {
+        if (watchId) {
+          navigator.geolocation.clearWatch(watchId);
+          watchId = null;
+          document.getElementById("start").disabled = false;
+          document.getElementById("stop").disabled = true;
+        }
+      }
+
+      // Add event listeners to buttons
+      document
+        .getElementById("start")
+        .addEventListener("click", startSendingLocation);
+      document
+        .getElementById("stop")
+        .addEventListener("click", stopSendingLocation);
+    </script>
+  </body>
+</html>

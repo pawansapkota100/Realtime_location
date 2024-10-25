@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebSocket Test</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <style>
+      #map {
+        height: 400px; /* Set the height of the map */
+        width: 100%; /* Set the width of the map */
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <!-- Map container -->
+    <p id="chat-log"></p>
+    <script>
+      // Initialize the Leaflet map
+      const map = L.map("map").setView([0, 0], 2); // Initial view at [0, 0] with zoom level 2
+
+      // Add a tile layer to the map (OpenStreetMap tiles)
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      }).addTo(map);
+
+      // Create a marker at the initial position
+      const marker = L.marker([0, 0]).addTo(map);
+
+      const chatSocket = new WebSocket("ws://127.0.0.1:8001/ws/livelocation/");
+
+      chatSocket.onopen = function () {
+        console.log("WebSocket connection established");
+      };
+
+      chatSocket.onmessage = function (e) {
+        const data = JSON.parse(e.data);
+        console.log("Message from server:", data.longitude, data.latitude);
+
+        // Update the marker position and map view based on received coordinates
+        const latitude = data.latitude;
+        const longitude = data.longitude;
+
+        marker.setLatLng([latitude, longitude]);
+        map.setView([latitude, longitude], 13); // Adjust zoom level as needed
+
+        // Log the coordinates in the chat log
+        document.getElementById(
+          "chat-log"
+        ).textContent += `${longitude}, ${latitude}\n`;
+      };
+
+      chatSocket.onclose = function (e) {
+        console.log("WebSocket connection closed:", e.code, e.reason);
+      };
+
+      chatSocket.onerror = function (e) {
+        console.error("WebSocket error:", e);
+      };
+    </script>
+  </body>
+</html>
