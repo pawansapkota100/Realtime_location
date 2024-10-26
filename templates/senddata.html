@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Location Tracker</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
+      integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+      crossorigin=""
+    />
+    <style>
+      #map {
+        height: 80vh; /* Full viewport height */
+        width: 100%; /* Full width */
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <button onclick="sendLocationData()">Send Location</button>
+
+    <script
+      src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
+      integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
+      crossorigin=""
+    ></script>
+    <script>
+      let map;
+      let marker;
+
+      function showmap(latitude, longitude) {
+        if (!map) {
+          // Initialize the map only once
+          map = L.map("map").setView([latitude, longitude], 15);
+
+          // Add OpenStreetMap tiles
+          L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            maxZoom: 19,
+          }).addTo(map);
+
+          // Add a marker at the initial location
+          marker = L.marker([latitude, longitude])
+            .addTo(map)
+            .bindPopup("You are here!")
+            .openPopup();
+        } else {
+          // Update marker position if the map is already initialized
+          marker.setLatLng([latitude, longitude]);
+          map.setView([latitude, longitude], 15);
+        }
+      }
+
+      function sendLocationData() {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              const longitude = position.coords.longitude;
+              const latitude = position.coords.latitude;
+
+              // Log the location data
+              const data = {
+                longitude: longitude,
+                latitude: latitude,
+              };
+
+              // Initialize the map with user's location
+              showmap(latitude, longitude);
+
+              // Send a POST request to the API
+              fetch("http://127.0.0.1:8000/location/", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data),
+              })
+                .then((response) => {
+                  if (!response.ok) {
+                    throw new Error("Network response was not ok");
+                  }
+                  return response.json();
+                })
+                .then((data) => {
+                  console.log("Success:", data);
+                })
+                .catch((error) => {
+                  console.error("Error:", error);
+                });
+            },
+            () => {
+              alert("Unable to retrieve your location.");
+            }
+          );
+        } else {
+          console.log("Geolocation is not supported by this browser.");
+          alert("Geolocation is not supported by this browser.");
+        }
+      }
+
+      // Call the function every 5 seconds
+      setInterval(sendLocationData, 5000);
+    </script>
+  </body>
+</html>

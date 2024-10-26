@@ -8,7 +8,7 @@
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <style>
       #map {
-        height: 400px; /* Set the height of the map */
+        height: 80vh; /* Corrected from 100%% to 100% */
         width: 100%; /* Set the width of the map */
       }
     </style>
@@ -16,7 +16,9 @@
   <body>
     <div id="map"></div>
     <!-- Map container -->
+
     <p id="chat-log"></p>
+
     <script>
       // Initialize the Leaflet map
       const map = L.map("map").setView([0, 0], 2); // Initial view at [0, 0] with zoom level 2
@@ -30,8 +32,8 @@
 
       // Create a marker at the initial position
       const marker = L.marker([0, 0]).addTo(map);
-
-      const chatSocket = new WebSocket("ws://127.0.0.1:8001/ws/livelocation/");
+      const url = "ws://127.0.0.1:8001/ws/livelocation/";
+      const chatSocket = new WebSocket(url);
 
       chatSocket.onopen = function () {
         console.log("WebSocket connection established");
