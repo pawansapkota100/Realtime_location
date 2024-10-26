@@ -46,4 +46,4 @@ class ShowloacationUpdate(ModelViewSet):
     
 
 class MapView(TemplateView):
-    template_name = 'test.html' 
+    template_name = 'receive.html' 
